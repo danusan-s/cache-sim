@@ -1,4 +1,5 @@
 #include "cache.h"
+#include <algorithm>
 #include <cassert>
 #include <cstdint>
 #include <iostream>
@@ -68,35 +69,69 @@ void testEviction(Cache &cache) {
 }
 
 // Test random access pattern
-void testRandomAccess(Cache &cache) {
-  std::default_random_engine generator;
+void testUniformRandomAccess(Cache &cache, int seed = 42) {
+  std::cout << "Running Uniform Random access test.\n";
+  // Mersenne Twister random number generator
+  // (low chaces of patterns, higher randomness)
+  std::mt19937 generator(seed);
+  // Uniform distribution for truly random access
   std::uniform_int_distribution<uint64_t> distribution(0x0000, 0xFFFF);
 
   for (int i = 0; i < 10000; i++) {
-    uint64_t randomAddress = distribution(generator) * BLOCK_SIZE;
+    uint64_t randomAddress = distribution(generator);
     if (i % 2 == 0) {
       cache.read(randomAddress);
     } else {
       cache.write(randomAddress);
     }
   }
+}
 
-  std::cout << "Random access test completed.\n";
+// Test localized random access pattern
+void testLocalizedRandomAccess(Cache &cache, int seed = 42) {
+
+  std::cout << "Running Localized random access test.\n";
+  // Minstd random number generator
+  // (higher chances of patterns, worse randomness)
+  std::minstd_rand generator(seed);
+  // Normal distribution for localized random access
+  std::normal_distribution<double> distribution(32768.0,
+                                                8192.0); // Mean=32K, Stddev=8K
+
+  for (int i = 0; i < 10000; i++) {
+    uint64_t randomAddress = static_cast<uint16_t>(
+        std::clamp(distribution(generator), 0.0, 65535.0));
+    if (i % 2 == 0) {
+      cache.read(randomAddress);
+    } else {
+      cache.write(randomAddress);
+    }
+  }
 }
 
 int main() {
+  std::cout << "Cache Simulator\n";
+  std::cout << "Enter a random seed value: ";
+  int seed;
+  std::cin >> seed;
+
   // Initialize cache
   Cache cache(CACHE_SIZE, BLOCK_SIZE, ASSOCIATIVITY, POLICY);
 
   // Run tests
   testBasicOperations(cache);
   cache.clearCache();
+
   testEviction(cache);
   cache.clearCache();
-  testRandomAccess(cache);
 
-  // Print cache statistics
+  testUniformRandomAccess(cache, seed);
   printCacheStats(cache);
+  cache.clearCache();
+
+  testLocalizedRandomAccess(cache, seed);
+  printCacheStats(cache);
+  cache.clearCache();
 
   std::cout << "All cache tests completed successfully!\n";
   return 0;

@@ -1,5 +1,5 @@
 #include "cache.h"
-#include <cstdlib>
+#include <random>
 
 Cache::Cache(size_t cacheSize, size_t blockSize, size_t associativity,
              ReplacementPolicy policy)
@@ -104,7 +104,10 @@ CacheBlock *Cache::evictBlock(uint64_t setIndex) {
     }
     return fifoBlock;
   }
+
   // Random replacement policy
-  int randomIndex = rand() % associativity;
+  std::minstd_rand rng(42);
+  std::uniform_int_distribution<int> dist(0, associativity - 1);
+  int randomIndex = dist(rng);
   return &(cache[setIndex][randomIndex]);
 }

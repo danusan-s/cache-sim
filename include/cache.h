@@ -67,6 +67,8 @@ public:
    * Clear the cache by setting all blocks to invalid
    */
   void clearCache() {
+    hitCount = 0;
+    missCount = 0;
     for (size_t i = 0; i < numSets; i++) {
       for (size_t j = 0; j < associativity; j++) {
         cache[i][j].setValid(false);
