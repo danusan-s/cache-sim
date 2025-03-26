@@ -19,11 +19,22 @@ file(GLOB SOURCES "${PROJECT_SOURCE_DIR}/src/*.cpp")
 # Add the executable
 add_executable(${PROJECT_NAME} ${SOURCES})
 
-# Optional: Set output directory for the executable
+# Set output directory for the executable
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 
-
-# Optional: Enable warnings
+# Enable warnings
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     target_compile_options(${PROJECT_NAME} PRIVATE -Wall -Wextra)
+    
+    # Enable AddressSanitizer (for debugging)
+    target_compile_options(${PROJECT_NAME} PRIVATE -fsanitize=address)
+    target_link_libraries(${PROJECT_NAME} PRIVATE -fsanitize=address)
 endif()
+
+# If Clang or GCC, also set the runtime library for ASan : 
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    set(SANITIZER_FLAGS "-fsanitize=address")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${SANITIZER_FLAGS}")
+    set(CMAKE_LINKER_FLAGS "${CMAKE_LINKER_FLAGS} ${SANITIZER_FLAGS}")
+endif()
+

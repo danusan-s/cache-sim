@@ -47,6 +47,9 @@ CacheBlock Cache::write(uint64_t address) {
   evictedBlock->setLRUCounter(counter);
   evictedBlock->setFifoCounter(counter);
 
+  if (replacedBlock.tag == tag) {
+    replacedBlock.setValid(false);
+  }
   return replacedBlock;
 }
 

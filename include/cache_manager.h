@@ -1,3 +1,6 @@
+#ifndef CACHE_MANAGER_H
+#define CACHE_MANAGER_H
+
 #include "cache.h"
 #include <cstdint>
 #include <vector>
@@ -17,11 +20,13 @@ private:
 public:
   CacheManager(int latency = 100);
 
-  ~CacheManager();
   void addCache(Cache *cache);
   void removeCache(size_t index);
   int write(uint64_t address, size_t index);
-  int read(uint64_t address);
+  int access(uint64_t address);
+  std::vector<Cache *> getCaches() { return caches; }
   void clearAll();
   void printAll();
 };
+
+#endif // CACHE_MANAGER_H

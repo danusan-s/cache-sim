@@ -1,3 +1,6 @@
+#ifndef CACHE_H
+#define CACHE_H
+
 #include "cache_block.h"
 #include <cstdint>
 #include <vector>
@@ -86,3 +89,5 @@ public:
     }
   }
 };
+
+#endif

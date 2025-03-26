@@ -1,5 +1,7 @@
+#ifndef CACHE_BLOCK_H
+#define CACHE_BLOCK_H
+
 #include <cstdint>
-#include <vector>
 
 /*
  * CacheBlock struct represents a block in the cache.
@@ -30,3 +32,5 @@ public:
   void setLRUCounter(int counter);
   void setFifoCounter(int counter);
 };
+
+#endif // CACHE_BLOCK_H
