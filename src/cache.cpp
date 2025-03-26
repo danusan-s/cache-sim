@@ -2,14 +2,15 @@
 #include <random>
 
 Cache::Cache(size_t cacheSize, size_t blockSize, size_t associativity,
-             ReplacementPolicy policy)
+             ReplacementPolicy policy, int latency = 0)
     : cacheSize(cacheSize), blockSize(blockSize), associativity(associativity),
-      replacement_policy(policy), counter(0), hitCount(0), missCount(0) {
+      replacement_policy(policy), counter(0), hitCount(0), missCount(0),
+      latency(latency) {
   numSets = cacheSize / (blockSize * associativity);
   cache.resize(numSets, std::vector<CacheBlock>(associativity));
 }
 
-bool Cache::read(uint64_t address) {
+CacheBlock *Cache::access(uint64_t address) {
   ++counter;
 
   // Calculate the set index and tag
@@ -22,54 +23,31 @@ bool Cache::read(uint64_t address) {
       // Cache hit
       ++hitCount;
       cache[setIndex][i].setLRUCounter(counter);
-      return true;
+      return &cache[setIndex][i];
     }
   }
 
   ++missCount;
-  // Cache miss, evict and load new block
-  CacheBlock *block = evictBlock(setIndex);
-
-  // Load new block into cache
-  block->setTag(tag);
-  block->setValid(true);
-  block->setDirty(false);
-  block->setLRUCounter(counter);
-  block->setFifoCounter(counter);
-
-  return false;
+  return nullptr;
 }
 
-bool Cache::write(uint64_t address) {
+CacheBlock Cache::write(uint64_t address) {
   ++counter;
 
   // Calculate the set index and tag
   uint64_t setIndex = (address / blockSize) % numSets;
   uint64_t tag = address / (blockSize * numSets);
 
-  // Check if the block is in the cache
-  for (size_t i = 0; i < associativity; i++) {
-    if (cache[setIndex][i].tag == tag && cache[setIndex][i].valid) {
-      // Cache hit, set dirty and update data
-      ++hitCount;
-      cache[setIndex][i].setLRUCounter(counter);
-      cache[setIndex][i].setDirty(true);
-      return true;
-    }
-  }
+  CacheBlock *evictedBlock = evictBlock(setIndex);
+  CacheBlock replacedBlock = *evictedBlock;
 
-  ++missCount;
-  // Cache miss, evict and load new block
-  CacheBlock *block = evictBlock(setIndex);
+  evictedBlock->setTag(tag);
+  evictedBlock->setIndex(setIndex);
+  evictedBlock->setValid(true);
+  evictedBlock->setLRUCounter(counter);
+  evictedBlock->setFifoCounter(counter);
 
-  // Overwrite the block with new data
-  block->setTag(tag);
-  block->setValid(true);
-  block->setDirty(true);
-  block->setLRUCounter(counter);
-  block->setFifoCounter(counter);
-
-  return false;
+  return replacedBlock;
 }
 
 CacheBlock *Cache::evictBlock(uint64_t setIndex) {

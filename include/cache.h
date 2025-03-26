@@ -25,6 +25,7 @@ private:
   uint64_t missCount;
 
 public:
+  int latency;
   /*
    * Constructor for Cache class.
    * Initializes the cache with the given parameters.
@@ -32,20 +33,19 @@ public:
    * 1 block per set for direct-mapped, >1 blocks per set for set-associative.
    */
   Cache(size_t cacheSize, size_t blockSize, size_t associativity,
-        ReplacementPolicy policy);
+        ReplacementPolicy policy, int latency);
 
   /*
-   * Reads data from the cache at the given address.
+   * Access data from the cache at the given address.
    * returns true if cache hit, false if cache miss.
    */
-  bool read(uint64_t address);
+  CacheBlock *access(uint64_t address);
 
   /*
    * Writes data to the cache at the given address.
-   * If cache hit, set dirty and update data.
-   * If cache miss, evict block according to replacement policy and load new
+   * Returns the block that was replaced
    */
-  bool write(uint64_t address);
+  CacheBlock write(uint64_t address);
 
   /*
    * Evicts a block from the given set according to the replacement policy.
@@ -62,6 +62,16 @@ public:
    * Returns the total number of cache misses.
    */
   uint64_t getMissCount() const { return missCount; }
+
+  /*
+   * Returns the total number of sets.
+   */
+  size_t getNumSets() const { return numSets; }
+
+  /*
+   * Returns the total number of sets.
+   */
+  size_t getBlockSize() const { return blockSize; }
 
   /*
    * Clear the cache by setting all blocks to invalid

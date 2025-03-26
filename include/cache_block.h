@@ -17,6 +17,7 @@ public:
   int lruCounter;
   int fifoCounter;
   uint64_t tag;
+  uint64_t index;
   bool valid;
   bool dirty;
 
@@ -25,6 +26,7 @@ public:
   void setDirty(bool dirty);
   void setValid(bool valid);
   void setTag(uint64_t tag);
+  void setIndex(uint64_t setIndex);
   void setLRUCounter(int counter);
   void setFifoCounter(int counter);
 };
